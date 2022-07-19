@@ -9,12 +9,28 @@ import UIKit
 
 class ToDoTableViewController: UITableViewController {
     
-    var toDos : [ToDo] = []//creates an empty array of the class that we made
+    //var toDos : [ToDo] = []//creates an empty array of the class that we made
+    var toDos : [ToDoCD] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        toDos = createToDos()
+        //toDos = createToDos()
+        //getToDos()
     }//view did load ends
+    
+    override func viewWillAppear(_ animated: Bool) {
+        getToDos()
+    }
+    
+    func getToDos(){
+        if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext{
+            if let coreDataToDos = try? context.fetch(ToDoCD.fetchRequest()) as? [ToDoCD]{
+                toDos = coreDataToDos
+                tableView.reloadData()
+                }
+            }
+        }
+        
     
     func createToDos() -> [ToDo] {
 
@@ -47,11 +63,16 @@ class ToDoTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
 
         let toDo = toDos[indexPath.row]
-        if toDo.important{
-            cell.textLabel?.text = "👍" + toDo.name
-        }else{
-            cell.textLabel?.text = toDo.name
+        
+        if let name = toDo.name{
+            if toDo.important{
+                cell.textLabel?.text = "👍" + name
+            }else{
+                cell.textLabel?.text = name
+            }//creating the cell that we print out
+        
         }
+        
         return cell
     }
     
@@ -61,7 +82,7 @@ class ToDoTableViewController: UITableViewController {
         }
         
         if let completeVC = segue.destination as? CompleteToDoViewController {
-            if let toDo = sender as? ToDo{
+            if let toDo = sender as? ToDoCD{
                 completeVC.selectedToDo = toDo
                 completeVC.previousVC = self
             }
